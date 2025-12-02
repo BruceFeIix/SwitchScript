@@ -30,6 +30,7 @@ mkdir -p ./SwitchSD/bootloader/payloads
 mkdir -p ./SwitchSD/config/ultrahand/lang
 mkdir -p ./SwitchSD/switch/Switch_90DNS_tester
 mkdir -p ./SwitchSD/switch/DBI
+mkdir -p ./SwitchSD/switch/NX-Shell
 mkdir -p ./SwitchSD/switch/HB-App-Store
 mkdir -p ./SwitchSD/switch/HekateToolbox
 mkdir -p ./SwitchSD/switch/JKSV
@@ -39,67 +40,43 @@ mkdir -p ./SwitchSD/switch/SimpleModDownloader
 mkdir -p ./SwitchSD/switch/Switchfin
 mkdir -p ./SwitchSD/switch/tencent-switcher-gui
 mkdir -p ./SwitchSD/switch/wiliwili
+mkdir -p ./SwitchSD/switch/NX-Activity-Log
 mkdir -p ./SwitchSD/switch/.overlays
 mkdir -p ./SwitchSD/switch/.packages
 
 cd SwitchSD
 
-### Fetch latest atmosphere from https://github.com/Atmosphere-NX/Atmosphere/releases/latest
-curl -sL https://api.github.com/repos/Atmosphere-NX/Atmosphere/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo {} >> ../description.txt
-curl -sL https://api.github.com/repos/Atmosphere-NX/Atmosphere/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*atmosphere[^"]*.zip' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o atmosphere.zip
-if [ $? -ne 0 ]; then
-    echo "atmosphere download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/Atmosphere-NX/Atmosphere/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*atmosphere[^"]*.zip' | sed 's/"//g')
+curl -sL "$download_url" -o atmosphere.zip && {
     echo "atmosphere download\033[32m success\033[0m."
     unzip -oq atmosphere.zip
     rm atmosphere.zip
-fi
-
-### Fetch latest fusee.bin from https://github.com/Atmosphere-NX/Atmosphere/releases/latest
-curl -sL https://api.github.com/repos/Atmosphere-NX/Atmosphere/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*fusee.bin"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o fusee.bin
-if [ $? -ne 0 ]; then
-    echo "fusee download\033[31m failed\033[0m."
-else
+} || echo "atmosphere download\033[31m failed\033[0m."
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*fusee.bin' | sed 's/"//g')
+curl -sL "$download_url" -o fusee.bin && {
     echo "fusee download\033[32m success\033[0m."
     mv fusee.bin ./bootloader/payloads
-fi
+} || echo "fusee download\033[31m failed\033[0m."
 
-### Fetch Hekate + Nyx CHS from https://api.github.com/repos/easyworld/hekate/releases/latest
-curl -sL https://api.github.com/repos/easyworld/hekate/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo {} >> ../description.txt
-curl -sL https://api.github.com/repos/easyworld/hekate/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*hekate_ctcaer[^"]*_sc.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o hekate.zip
-if [ $? -ne 0 ]; then
-    echo "Hekate + Nyx CHS download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/easyworld/hekate/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*hekate_ctcaer[^"]*_sc.zip' | sed 's/"//g')
+curl -sL "$download_url" -o hekate.zip && {
     echo "Hekate + Nyx CHS download\033[32m success\033[0m."
     unzip -oq hekate.zip
     rm hekate.zip
-fi
+} || echo "Hekate + Nyx CHS download\033[31m failed\033[0m."
 
-### Fetch Sigpatches from https://hackintendo.com/download/sigpatches
+### Fetch Sigpatches from https://gbatemp.net/threads/sigpatches-for-atmosphere-hekate-fss0-fusee-package3.571543/
 curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/sigpatches.zip -o sigpatches.zip
 if [ $? -ne 0 ]; then
     echo "sigpatches download\033[31m failed\033[0m."
 else
     echo "sigpatches download\033[32m success\033[0m."
-    echo sigpatches >> ../description.txt
     unzip -oq sigpatches.zip
     rm sigpatches.zip
 fi
 
-### Fetch logo
 curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/theme/logo.zip -o logo.zip
 if [ $? -ne 0 ]; then
     echo "logo download\033[31m failed\033[0m."
@@ -109,274 +86,137 @@ else
     rm logo.zip
 fi
 
-### Fetch latest Lockpick_RCM.bin from https://github.com/Decscots/Lockpick_RCM/releases/latest
-curl -sL https://api.github.com/repos/Decscots/Lockpick_RCM/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo Lockpick_RCM {} >> ../description.txt
-curl -sL https://api.github.com/repos/Decscots/Lockpick_RCM/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*Lockpick_RCM.bin"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o Lockpick_RCM.bin
-if [ $? -ne 0 ]; then
-    echo "Lockpick_RCM download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/Lockpick_RCMDecScots/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*Lockpick_RCM.bin' | sed 's/"//g')
+curl -sL "$download_url" -o Lockpick_RCM.bin && {
     echo "Lockpick_RCM download\033[32m success\033[0m."
     mv Lockpick_RCM.bin ./bootloader/payloads
-fi
+} || echo "Lockpick_RCM download\033[31m failed\033[0m."
 
-### Fetch latest TegraExplorer.bin form https://github.com/suchmememanyskill/TegraExplorer/releases/latest
-curl -sL https://api.github.com/repos/suchmememanyskill/TegraExplorer/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo TegraExplorer {} >> ../description.txt
-curl -sL https://api.github.com/repos/suchmememanyskill/TegraExplorer/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*TegraExplorer.bin"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o TegraExplorer.bin
-if [ $? -ne 0 ]; then
-    echo "TegraExplorer download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/TegraExplorer/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*TegraExplorer.bin' | sed 's/"//g')
+curl -sL "$download_url" -o TegraExplorer.bin && {
     echo "TegraExplorer download\033[32m success\033[0m."
     mv TegraExplorer.bin ./bootloader/payloads
-fi
+} || echo "TegraExplorer download\033[31m failed\033[0m."
 
-### Fetch latest CommonProblemResolver.bin form https://github.com/zdm65477730/CommonProblemResolver/releases/latest
-curl -sL https://api.github.com/repos/zdm65477730/CommonProblemResolver/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo CommonProblemResolver {} >> ../description.txt
-curl -sL https://api.github.com/repos/zdm65477730/CommonProblemResolver/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*CommonProblemResolver.bin"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o CommonProblemResolver.bin
-if [ $? -ne 0 ]; then
-    echo "CommonProblemResolver download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/CommonProblemResolver/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*CommonProblemResolver.bin' | sed 's/"//g')
+curl -sL "$download_url" -o CommonProblemResolver.bin && {
     echo "CommonProblemResolver download\033[32m success\033[0m."
     mv CommonProblemResolver.bin ./bootloader/payloads
-fi
+} || echo "CommonProblemResolver download\033[31m failed\033[0m."
 
-### Fetch lastest Switch_90DNS_tester
-curl -sL https://api.github.com/repos/meganukebmp/Switch_90DNS_tester/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo Switch_90DNS_tester {} >> ../description.txt
-curl -sL https://api.github.com/repos/meganukebmp/Switch_90DNS_tester/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*Switch_90DNS_tester.nro"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o Switch_90DNS_tester.nro
-if [ $? -ne 0 ]; then
-    echo "Switch_90DNS_tester download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/meganukebmp/Switch_90DNS_tester/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*Switch_90DNS_tester.nro' | sed 's/"//g')
+curl -sL "$download_url" -o Switch_90DNS_tester.nro && {
     echo "Switch_90DNS_tester download\033[32m success\033[0m."
     mv Switch_90DNS_tester.nro ./switch/Switch_90DNS_tester
-fi
+} || echo "Switch_90DNS_tester download\033[31m failed\033[0m."
 
-### Fetch lastest DBI from https://github.com/rashevskyv/dbi/releases/latest
-curl -sL https://api.github.com/repos/rashevskyv/dbi/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo {} >> ../description.txt
-curl -sL https://api.github.com/repos/rashevskyv/dbi/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*DBI.nro"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o DBI.nro
-if [ $? -ne 0 ]; then
-    echo "DBI download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/rashevskyv/dbi/releases/135856657)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*DBI.nro' | sed 's/"//g')
+curl -sL "$download_url" -o DBI.nro && {
     echo "DBI download\033[32m success\033[0m."
     mv DBI.nro ./switch/DBI
-fi
+} || echo "DBI download\033[31m failed\033[0m."
 
-### Fetch lastest Awoo Installer from https://github.com/dragonflylee/Awoo-Installer/releases/latest
-curl -sL https://api.github.com/repos/dragonflylee/Awoo-Installer/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo {} >> ../description.txt
-curl -sL https://api.github.com/repos/dragonflylee/Awoo-Installer/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*Awoo-Installer.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o Awoo-Installer.zip
-if [ $? -ne 0 ]; then
-    echo "Awoo Installer download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/dragonflylee/Awoo-Installer/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*Awoo-Installer.zip' | sed 's/"//g')
+curl -sL "$download_url" -o Awoo-Installer.zip && {
     echo "Awoo Installer download\033[32m success\033[0m."
     unzip -oq Awoo-Installer.zip
     rm Awoo-Installer.zip
-fi
+} || echo "Awoo Installer download\033[31m failed\033[0m."
 
-### Fetch lastest Hekate-toolbox from https://github.com/WerWolv/Hekate-Toolbox/releases/latest
-curl -sL https://api.github.com/repos/WerWolv/Hekate-Toolbox/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo HekateToolbox {} >> ../description.txt
-curl -sL https://api.github.com/repos/WerWolv/Hekate-Toolbox/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*HekateToolbox.nro"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o HekateToolbox.nro
-if [ $? -ne 0 ]; then
-    echo "HekateToolbox download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/WerWolv/Hekate-Toolbox/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*HekateToolbox.nro' | sed 's/"//g')
+curl -sL "$download_url" -o HekateToolbox.nro && {
     echo "HekateToolbox download\033[32m success\033[0m."
     mv HekateToolbox.nro ./switch/HekateToolbox
-fi
+} || echo "HekateToolbox download\033[31m failed\033[0m."
 
-### Fetch lastest NX-Activity-Log
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/NX-Activity-Log.zip -o NX-Activity-Log.zip
-if [ $? -ne 0 ]; then
-    echo "NX-Activity-Log download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/NX-Activity-Log/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*NX-Activity-Log.nro' | sed 's/"//g')
+curl -sL "$download_url" -o NX-Activity-Log.nro && {
     echo "NX-Activity-Log download\033[32m success\033[0m."
-    echo NX-Activity-Log >> ../description.txt
-    unzip -oq NX-Activity-Log.zip
-    rm NX-Activity-Log.zip
-fi
+    mv NX-Activity-Log.nro ./switch/NX-Activity-Log
+} || echo "NX-Activity-Log download\033[31m failed\033[0m."
 
-### Fetch lastest NXThemesInstaller from https://github.com/exelix11/SwitchThemeInjector/releases/latest
-curl -sL https://api.github.com/repos/exelix11/SwitchThemeInjector/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo NXThemesInstaller {} >> ../description.txt
-curl -sL https://api.github.com/repos/exelix11/SwitchThemeInjector/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*NXThemesInstaller.nro"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o NXThemesInstaller.nro
-if [ $? -ne 0 ]; then
-    echo "NXThemesInstaller download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/exelix11/SwitchThemeInjector/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*NXThemesInstaller.nro' | sed 's/"//g')
+curl -sL "$download_url" -o NXThemesInstaller.nro && {
     echo "NXThemesInstaller download\033[32m success\033[0m."
     mv NXThemesInstaller.nro ./switch/NXThemesInstaller
-fi
+} || echo "NXThemesInstaller download\033[31m failed\033[0m."
 
-### Fetch lastest JKSV from https://github.com/J-D-K/JKSV/releases/latest
-curl -sL https://api.github.com/repos/J-D-K/JKSV/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo JKSV {} >> ../description.txt
-curl -sL https://api.github.com/repos/J-D-K/JKSV/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*JKSV.nro"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o JKSV.nro
-if [ $? -ne 0 ]; then
-    echo "JKSV download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/J-D-K/JKSV/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*JKSV.nro' | sed 's/"//g')
+curl -sL "$download_url" -o JKSV.nro && {
     echo "JKSV download\033[32m success\033[0m."
     mv JKSV.nro ./switch/JKSV
-fi
+} || echo "JKSV download\033[31m failed\033[0m."
 
-### Fetch lastest tencent-switcher-gui from https://github.com/CaiMiao/Tencent-switcher-GUI/releases/latest
-curl -sL https://api.github.com/repos/CaiMiao/Tencent-switcher-GUI/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo tencent-switcher-gui {} >> ../description.txt
-curl -sL https://api.github.com/repos/CaiMiao/Tencent-switcher-GUI/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*tencent-switcher-gui.nro"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o tencent-switcher-gui.nro
-if [ $? -ne 0 ]; then
-    echo "tencent-switcher-gui download\033[31m failed\033[0m."
-else
-    echo "tencent-switcher-gui download\033[32m success\033[0m."
+latest_release_info=$(curl -sL https://api.github.com/repos/CaiMiao/Tencent-switcher-GUI/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*tencent-switcher-gui.nro' | sed 's/"//g')
+curl -sL "$download_url" -o tencent-switcher-gui.nro && {
+    echo "Tencent-switcher-GUI download\033[32m success\033[0m."
     mv tencent-switcher-gui.nro ./switch/tencent-switcher-gui
-fi
+} || echo "Tencent-switcher-GUI download\033[31m failed\033[0m."
 
-### Fetch lastest aio-switch-updater from https://github.com/HamletDuFromage/aio-switch-updater/releases/latest
-curl -sL https://api.github.com/repos/HamletDuFromage/aio-switch-updater/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo aio-switch-updater {} >> ../description.txt
-curl -sL https://api.github.com/repos/HamletDuFromage/aio-switch-updater/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*aio-switch-updater.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o aio-switch-updater.zip
-if [ $? -ne 0 ]; then
-    echo "aio-switch-updater download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/HamletDuFromage/aio-switch-updater/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*aio-switch-updater.zip' | sed 's/"//g')
+curl -sL "$download_url" -o aio-switch-updater.zip && {
     echo "aio-switch-updater download\033[32m success\033[0m."
     unzip -oq aio-switch-updater.zip
     rm aio-switch-updater.zip
-fi
+} || echo "aio-switch-updater download\033[31m failed\033[0m."
 
-### Fetch lastest wiliwili from https://github.com/xfangfang/wiliwili/releases/latest
-curl -sL https://api.github.com/repos/xfangfang/wiliwili/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo wiliwili {} >> ../description.txt
-curl -sL https://api.github.com/repos/xfangfang/wiliwili/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*wiliwili-NintendoSwitch.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o wiliwili-NintendoSwitch.zip
-if [ $? -ne 0 ]; then
-    echo "wiliwili download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/xfangfang/wiliwili/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*wiliwili-NintendoSwitch.zip' | sed 's/"//g')
+curl -sL "$download_url" -o wiliwili-NintendoSwitch.zip && {
     echo "wiliwili download\033[32m success\033[0m."
     unzip -oq wiliwili-NintendoSwitch.zip
     mv wiliwili/wiliwili.nro ./switch/wiliwili
     rm -rf wiliwili
     rm wiliwili-NintendoSwitch.zip
-fi
+} || echo "wiliwili download\033[31m failed\033[0m."
 
-### Fetch lastest SimpleModDownloader from https://github.com/PoloNX/SimpleModDownloader/releases/latest
-curl -sL https://api.github.com/repos/PoloNX/SimpleModDownloader/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo SimpleModDownloader {} >> ../description.txt
-curl -sL https://api.github.com/repos/PoloNX/SimpleModDownloader/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*SimpleModDownloader.nro"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o SimpleModDownloader.nro
-if [ $? -ne 0 ]; then
-    echo "SimpleModDownloader download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/PoloNX/SimpleModDownloader/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*SimpleModDownloader.nro' | sed 's/"//g')
+curl -sL "$download_url" -o SimpleModDownloader.nro && {
     echo "SimpleModDownloader download\033[32m success\033[0m."
     mv SimpleModDownloader.nro ./switch/SimpleModDownloader
-fi
+} || echo "SimpleModDownloader download\033[31m failed\033[0m."
 
-### Fetch lastest Switchfin from https://github.com/dragonflylee/switchfin/releases/latest
-curl -sL https://api.github.com/repos/dragonflylee/switchfin/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo {} >> ../description.txt
-curl -sL https://api.github.com/repos/dragonflylee/switchfin/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*Switchfin.nro"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o Switchfin.nro
-if [ $? -ne 0 ]; then
-    echo "Switchfin download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/dragonflylee/switchfin/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*Switchfin.nro' | sed 's/"//g')
+curl -sL "$download_url" -o Switchfin.nro&& {
     echo "Switchfin download\033[32m success\033[0m."
     mv Switchfin.nro ./switch/Switchfin
-fi
+} || echo "Switchfin download\033[31m failed\033[0m."
 
-### Fetch lastest Moonlight from https://github.com/XITRIX/Moonlight-Switch/releases/latest
-curl -sL https://api.github.com/repos/XITRIX/Moonlight-Switch/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo Moonlight {} >> ../description.txt
-curl -sL https://api.github.com/repos/XITRIX/Moonlight-Switch/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*Moonlight-Switch.nro"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o Moonlight-Switch.nro
-if [ $? -ne 0 ]; then
-    echo "Moonlight download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/XITRIX/Moonlight-Switch/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*Moonlight-Switch.nro' | sed 's/"//g')
+curl -sL "$download_url" -o Moonlight-Switch.nro&& {
     echo "Moonlight download\033[32m success\033[0m."
     mv Moonlight-Switch.nro ./switch/Moonlight
-fi
+} || echo "Moonlight download\033[31m failed\033[0m."
 
-### Fetch NX-Shell
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/NX-Shell.zip -o NX-Shell.zip
-if [ $? -ne 0 ]; then
-    echo "NX-Shell download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/NX-Shell/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*NX-Shell.nro' | sed 's/"//g')
+curl -sL "$download_url" -o NX-Shell.nro&& {
     echo "NX-Shell download\033[32m success\033[0m."
-    echo NX-Shell >> ../description.txt
-    unzip -oq NX-Shell.zip
-    rm NX-Shell.zip
-fi
+    mv NX-Shell.nro ./switch/NX-Shell
+} || echo "NX-Shell download\033[31m failed\033[0m."
 
-### Fetch lastest hb-appstore from https://github.com/fortheusers/hb-appstore/releases/latest
-curl -sL https://api.github.com/repos/fortheusers/hb-appstore/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo {} >> ../description.txt
-curl -sL https://api.github.com/repos/fortheusers/hb-appstore/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*appstore.nro"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o appstore.nro
-if [ $? -ne 0 ]; then
-    echo "hb-appstore download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/fortheusers/hb-appstore/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*appstore.nro' | sed 's/"//g')
+curl -sL "$download_url" -o appstore.nro&& {
     echo "hb-appstore download\033[32m success\033[0m."
     mv appstore.nro ./switch/HB-App-Store
-fi
+} || echo "hb-appstore download\033[31m failed\033[0m."
 
-### Fetch daybreak_x
 curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/daybreak_x.zip -o daybreak_x.zip
 if [ $? -ne 0 ]; then
     echo "daybreak download\033[31m failed\033[0m."
@@ -386,7 +226,6 @@ else
     rm daybreak_x.zip
 fi
 
-### Fetch lastest theme-patches from https://github.com/exelix11/theme-patches
 git clone https://github.com/exelix11/theme-patches
 if [ $? -ne 0 ]; then
     echo "theme-patches download\033[31m failed\033[0m."
@@ -397,118 +236,86 @@ else
     rm -rf theme-patches
 fi
 
-### Fetch nx-ovlloader
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/nx-ovlloader.zip -o nx-ovlloader.zip
-if [ $? -ne 0 ]; then
-    echo "nx-ovlloader download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/nx-ovlloader/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*nx-ovlloader.zip' | sed 's/"//g')
+curl -sL "$download_url" -o nx-ovlloader.zip&& {
     echo "nx-ovlloader download\033[32m success\033[0m."
     unzip -oq nx-ovlloader.zip
     rm nx-ovlloader.zip
-fi
+} || echo "nx-ovlloader download\033[31m failed\033[0m."
 
-### Fetch lastest Ultrahand-Overlay from https://github.com/ppkantorski/Ultrahand-Overlay/releases/latest
-curl -sL https://api.github.com/repos/ppkantorski/Ultrahand-Overlay/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo {} >> ../description.txt
-curl -sL https://api.github.com/repos/ppkantorski/Ultrahand-Overlay/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*lang.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o lang.zip
-curl -sL https://api.github.com/repos/ppkantorski/Ultrahand-Overlay/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*ovlmenu.ovl"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o ovlmenu.ovl
-if [ $? -ne 0 ]; then
-    echo "Ultrahand-Overlay download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/Ultrahand-Overlay/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*Ultrahand.zip' | sed 's/"//g')
+curl -sL "$download_url" -o Ultrahand.zip&& {
     echo "Ultrahand-Overlay download\033[32m success\033[0m."
-    unzip -oq lang.zip -d ./config/ultrahand/lang/
-    mv ovlmenu.ovl ./switch/.overlays
-    rm lang.zip
-fi
+    unzip -oq Ultrahand.zip
+    rm Ultrahand.zip
+} || echo "Ultrahand-Overlay download\033[31m failed\033[0m."
 
-### Fetch EdiZon
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/EdiZon.zip -o EdiZon.zip
-if [ $? -ne 0 ]; then
-    echo "EdiZon download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/EdiZon-Overlay/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*EdiZon.zip' | sed 's/"//g')
+curl -sL "$download_url" -o EdiZon.zip&& {
     echo "EdiZon download\033[32m success\033[0m."
     unzip -oq EdiZon.zip
     rm EdiZon.zip
-fi
+} || echo "EdiZon download\033[31m failed\033[0m."
 
-### Fetch ovl-sysmodules
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/ovl-sysmodules.zip -o ovl-sysmodules.zip
-if [ $? -ne 0 ]; then
-    echo "ovl-sysmodules download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/ovl-sysmodules/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*ovl-sysmodules.zip' | sed 's/"//g')
+curl -sL "$download_url" -o ovl-sysmodules.zip&& {
     echo "ovl-sysmodules download\033[32m success\033[0m."
     unzip -oq ovl-sysmodules.zip
     rm ovl-sysmodules.zip
-fi
+} || echo "ovl-sysmodules download\033[31m failed\033[0m."
 
-### Fetch StatusMonitor
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/StatusMonitor.zip -o StatusMonitor.zip
-if [ $? -ne 0 ]; then
-    echo "StatusMonitor download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/Status-Monitor-Overlay/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*StatusMonitor.zip' | sed 's/"//g')
+curl -sL "$download_url" -o StatusMonitor.zip&& {
     echo "StatusMonitor download\033[32m success\033[0m."
     unzip -oq StatusMonitor.zip
     rm StatusMonitor.zip
-fi
+} || echo "StatusMonitor download\033[31m failed\033[0m."
 
-### Fetch ReverseNX-RT
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/ReverseNX-RT.zip -o ReverseNX-RT.zip
-if [ $? -ne 0 ]; then
-    echo "ReverseNX-RT download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/ReverseNX-RT/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*ReverseNX-RT.zip' | sed 's/"//g')
+curl -sL "$download_url" -o ReverseNX-RT.zip&& {
     echo "ReverseNX-RT download\033[32m success\033[0m."
     unzip -oq ReverseNX-RT.zip
     rm ReverseNX-RT.zip
-fi
+} || echo "ReverseNX-RT download\033[31m failed\033[0m."
 
-### Fetch ldn_mitm
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/ldn_mitm.zip -o ldn_mitm.zip
-if [ $? -ne 0 ]; then
-    echo "ldn_mitm download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/ldn_mitm/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*ldn_mitm.zip' | sed 's/"//g')
+curl -sL "$download_url" -o ldn_mitm.zip&& {
     echo "ldn_mitm download\033[32m success\033[0m."
     unzip -oq ldn_mitm.zip
     rm ldn_mitm.zip
-fi
+} || echo "ldn_mitm download\033[31m failed\033[0m."
 
-### Fetch emuiibo
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/emuiibo.zip -o emuiibo.zip
-if [ $? -ne 0 ]; then
-    echo "emuiibo download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/emuiibo/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*emuiibo.zip' | sed 's/"//g')
+curl -sL "$download_url" -o emuiibo.zip&& {
     echo "emuiibo download\033[32m success\033[0m."
     unzip -oq emuiibo.zip
     rm emuiibo.zip
-fi
+} || echo "emuiibo download\033[31m failed\033[0m."
 
-### Fetch QuickNTP
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/QuickNTP.zip -o QuickNTP.zip
-if [ $? -ne 0 ]; then
-    echo "QuickNTP download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/QuickNTP/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*QuickNTP.zip' | sed 's/"//g')
+curl -sL "$download_url" -o QuickNTP.zip&& {
     echo "QuickNTP download\033[32m success\033[0m."
     unzip -oq QuickNTP.zip
     rm QuickNTP.zip
-fi
+} || echo "QuickNTP download\033[31m failed\033[0m."
 
-### Fetch Fizeau
-curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/Fizeau.zip -o Fizeau.zip
-if [ $? -ne 0 ]; then
-    echo "Fizeau download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/Fizeau/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*Fizeau.zip' | sed 's/"//g')
+curl -sL "$download_url" -o Fizeau.zip&& {
     echo "Fizeau download\033[32m success\033[0m."
     unzip -oq Fizeau.zip
     rm Fizeau.zip
-fi
+} || echo "Fizeau download\033[31m failed\033[0m."
 
-### Fetch Zing
 curl -sL https://raw.githubusercontent.com/huangqian8/SwitchPlugins/main/plugins/Zing.zip -o Zing.zip
 if [ $? -ne 0 ]; then
     echo "Zing download\033[31m failed\033[0m."
@@ -518,25 +325,75 @@ else
     rm Zing.zip
 fi
 
-### Fetch lastest sys-tune from https://github.com/HookedBehemoth/sys-tune/releases/latest
-curl -sL https://api.github.com/repos/HookedBehemoth/sys-tune/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo {} >> ../description.txt
-curl -sL https://api.github.com/repos/HookedBehemoth/sys-tune/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*sys-tune[^"]*.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o sys-tune.zip
-if [ $? -ne 0 ]; then
-    echo "sys-tune download\033[31m failed\033[0m."
-else
+latest_release_info=$(curl -sL https://api.github.com/repos/HookedBehemoth/sys-tune/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*sys-tune[^"]*.zip' | sed 's/"//g')
+curl -sL "$download_url" -o sys-tune.zip&& {
     echo "sys-tune download\033[32m success\033[0m."
     unzip -oq sys-tune.zip
     rm sys-tune.zip
-fi
+} || echo "sys-tune download\033[31m failed\033[0m."
 
-###
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/sys-patch/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*sys-patch.zip' | sed 's/"//g')
+curl -sL "$download_url" -o sys-patch.zip&& {
+    echo "sys-patch download\033[32m success\033[0m."
+     unzip -oq sys-patch.zip
+    rm sys-patch.zip
+} || echo "sys-patch download\033[31m failed\033[0m."
+
+latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/sys-clk/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*sys-clk[^"]*.zip' | sed 's/"//g')
+curl -sL "$download_url" -o sys-clk.zip&& {
+    echo "sys-clk download\033[32m success\033[0m."
+    unzip -oq sys-clk.zip
+    rm sys-clk.zip
+} || echo "sys-clk download\033[31m failed\033[0m."
+
+latest_release_info=$(curl -sL https://api.github.com/repos/halop/OC_Toolkit_SC_EOS/releases/latest)
+download_url_1=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*kip.zip' | sed 's/"//g')
+download_url_2=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*OC.Toolkit.u.zip' | sed 's/"//g')
+curl -sL "$download_url_1" -o kip.zip&&curl -sL "$download_url_2" -o OC.Toolkit.u.zip&& {
+    echo "OC_Toolkit_SC_EOS download\033[32m success\033[0m."
+    unzip -oq kip.zip -d ./atmosphere/kips/
+    unzip -oq OC.Toolkit.u.zip -d ./switch/.packages/
+    rm kip.zip
+    rm OC.Toolkit.u.zip
+} || echo "OC_Toolkit_SC_EOS download\033[31m failed\033[0m."
+
+latest_release_info=$(curl -sL https://api.github.com/repos/ndeadly/MissionControl/releases/latest)
+download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*MissionControl[^"]*.zip' | sed 's/"//g')
+curl -sL "$download_url" -o MissionControl.zip&& {
+    echo "MissionControl download\033[32m success\033[0m."
+    unzip -oq MissionControl.zip
+    rm MissionControl.zip
+} || echo "MissionControl download\033[31m failed\033[0m."
+
 cat >> ../description.txt << ENDOFFILE
+Atmosphere
+fusee
+Hekate + Nyx CHS
+sigpatches
+Lockpick_RCM
+TegraExplorer
+CommonProblemResolver
+Switch_90DNS_tester
+DBI
+Awoo-Installer
+Hekate-Toolbox
+NX-Activity-Log
+NXThemesInstaller
+JKSV
+Tencent-switcher-GUI
+aio-switch-updater
+wiliwili
+SimpleModDownloader
+Switchfin
+Moonlight
+NX-Shell
+hb-appstore
+daybreak
 nx-ovlloader
+Ultrahand-Overlay
 EdiZon
 ovl-sysmodules
 StatusMonitor
@@ -546,80 +403,12 @@ emuiibo
 QuickNTP
 Fizeau
 Zing
+sys-tune
+sys-patch
+sys-clk
+OC_Toolkit_SC_EOS
+MissionControl
 ENDOFFILE
-
-### Fetch sys-patch from https://github.com/impeeza/sys-patch/releases/latest
-curl -sL https://api.github.com/repos/impeeza/sys-patch/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo sys-patch {} >> ../description.txt
-curl -sL https://api.github.com/repos/impeeza/sys-patch/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*sys-patch[^"]*.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o sys-patch-zip.zip
-if [ $? -ne 0 ]; then
-    echo "sys-patch download\033[31m failed\033[0m."
-else
-    echo "sys-patch download\033[32m success\033[0m."
-    unzip -oq sys-patch-zip.zip
-    unzip -oq sys-patch.zip
-    rm sys-patch-zip.zip
-    rm sys-patch.zip
-fi
-
-### Fetch sys-clk from https://github.com/retronx-team/sys-clk/releases/latest
-curl -sL https://api.github.com/repos/retronx-team/sys-clk/releases/latest \
-  | jq '.tag_name' \
-  | xargs -I {} echo sys-clk {} >> ../description.txt
-curl -sL https://api.github.com/repos/retronx-team/sys-clk/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*sys-clk[^"]*.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o sys-clk.zip
-if [ $? -ne 0 ]; then
-    echo "sys-clk download\033[31m failed\033[0m."
-else
-    echo "sys-clk download\033[32m success\033[0m."
-    unzip -oq sys-clk.zip
-    rm sys-clk.zip
-    rm README.md
-fi
-
-### Fetch lastest OC_Toolkit_SC_EOS from https://github.com/halop/OC_Toolkit_SC_EOS/releases/latest
-curl -sL https://api.github.com/repos/halop/OC_Toolkit_SC_EOS/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo {} >> ../description.txt
-curl -sL https://api.github.com/repos/halop/OC_Toolkit_SC_EOS/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*kip.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o kip.zip
-curl -sL https://api.github.com/repos/halop/OC_Toolkit_SC_EOS/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*OC.Toolkit.u.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o OC.Toolkit.u.zip
-if [ $? -ne 0 ]; then
-    echo "OC_Toolkit_SC_EOS download\033[31m failed\033[0m."
-else
-    echo "OC_Toolkit_SC_EOS download\033[32m success\033[0m."
-    unzip -oq kip.zip -d ./atmosphere/kips/
-    unzip -oq OC.Toolkit.u.zip -d ./switch/.packages/
-    rm kip.zip
-    rm OC.Toolkit.u.zip
-fi
-
-### Fetch MissionControl from https://github.com/ndeadly/MissionControl/releases/latest
-curl -sL https://api.github.com/repos/ndeadly/MissionControl/releases/latest \
-  | jq '.name' \
-  | xargs -I {} echo {} >> ../description.txt
-curl -sL https://api.github.com/repos/ndeadly/MissionControl/releases/latest \
-  | grep -oP '"browser_download_url": "\Khttps://[^"]*MissionControl[^"]*.zip"' \
-  | sed 's/"//g' \
-  | xargs -I {} curl -sL {} -o MissionControl.zip
-if [ $? -ne 0 ]; then
-    echo "MissionControl download\033[31m failed\033[0m."
-else
-    echo "MissionControl download\033[32m success\033[0m."
-    unzip -oq MissionControl.zip
-    rm MissionControl.zip
-fi
 
 ### Rename hekate_ctcaer_*.bin to payload.bin
 find . -name "*hekate_ctcaer*" -exec mv {} payload.bin \;
@@ -642,15 +431,10 @@ autonogc=1
 updater2p=0
 bootprotect=0
 
-[Fusee]
-icon=bootloader/res/icon_ams.bmp
-payload=bootloader/payloads/fusee.bin
-
 [CFW (emuMMC)]
 emummcforce=1
 fss0=atmosphere/package3
 kip1patch=nosigchk
-kip1=atmosphere/kips/loader.kip
 atmosphere=1
 icon=bootloader/res/icon_Atmosphere_emunand.bmp
 id=cfw-emu
@@ -750,46 +534,106 @@ fi
 
 ### Write system_settings.ini in /atmosphere/config
 cat > ./atmosphere/config/system_settings.ini << ENDOFFILE
+; =============================================
+; Atmosphere 防封禁核心配置文件
+; =============================================
+
 [eupld]
-; 禁用将错误报告上传到任天堂
+; 禁用错误报告上传
 upload_enabled = u8!0x0
 
 [ro]
-; 控制 RO 是否应简化其对 NRO 的验证。
-; （注意：这通常不是必需的，可以使用 IPS 补丁。
+; 放宽NRO验证限制，便于自制软件运行
 ease_nro_restriction = u8!0x1
 
 [atmosphere]
-; 是否自动开启所有金手指。0=关。1=开。
+; 金手指默认关闭，按需开启更安全
 dmnt_cheats_enabled_by_default = u8!0x0
-
-; 如果你希望大气记住你上次金手指状态，请删除下方；号
-; dmnt_always_save_cheat_toggles = u8!0x1
-
-; 如果大气崩溃，10秒后自动重启
-; 1秒=1000毫秒，转换16进制
+; 崩溃10秒后自动重启 (10000毫秒)
 fatal_auto_reboot_interval = u64!0x2710
-
-; 使电源菜单的“重新启动”按钮重新启动到payload
-; 设置"normal"正常重启l 设置"rcm"重启RCM，
-; power_menu_reboot_function = str!payload
-
-; 启动90DNS与任天堂服务器屏蔽
+; 启用DNS屏蔽，阻止连接任天堂服务器
 enable_dns_mitm = u8!0x1
 add_defaults_to_dns_hosts = u8!0x1
-
-; 是否将蓝牙配对数据库用与虚拟系统
+; 虚拟系统使用外部蓝牙配对
 enable_external_bluetooth_db = u8!0x1
 
 [usb]
-; 开启USB3.0，尾数改为0是关闭
+; 强制开启USB 3.0
 usb30_force_enabled = u8!0x1
 
 [tc]
+; 温控设置 - 保持默认即可
 sleep_enabled = u8!0x0
-holdable_tskin = u32!0xEA60
-tskin_rate_table_console = str!”[[-1000000, 28000, 0, 0], [28000, 42000, 0, 51], [42000, 48000, 51, 102], [48000, 55000, 102, 153], [55000, 60000, 153, 255], [60000, 68000, 255, 255]]”
-tskin_rate_table_handheld = str!”[[-1000000, 28000, 0, 0], [28000, 42000, 0, 51], [42000, 48000, 51, 102], [48000, 55000, 102, 153], [55000, 60000, 153, 255], [60000, 68000, 255, 255]]”
+
+; =============================================
+; 🛡 防封禁核心配置 - 禁用所有任天堂服务
+; =============================================
+
+[bgtc]
+; 禁用所有后台任务
+enable_halfawake = u32!0x0
+minimum_interval_normal = u32!0x7FFFFFFF
+minimum_interval_save = u32!0x7FFFFFFF
+
+[npns]
+; 禁用新闻推送服务
+background_processing = u8!0x0
+sleep_periodic_interval = u32!0x7FFFFFFF
+
+[ns.notification]
+; 完全禁用系统更新检查和服务通信
+enable_download_task_list = u8!0x0
+enable_network_update = u8!0x0
+enable_request_on_cold_boot = u8!0x0
+retry_interval_min = u32!0x7FFFFFFF
+
+[account]
+; 禁用账户验证和许可证检查
+na_required_for_network_service = u8!0x0
+na_license_verification_enabled = u8!0x0
+
+[capsrv]
+; 禁用截图和录像验证
+enable_album_screenshot_filedata_verification = u8!0x0
+enable_album_movie_filehash_verification = u8!0x0
+
+[friends]
+; 禁用好友后台服务
+background_processing = u8!0x0
+
+[prepo]
+; 禁用数据统计上报
+transmission_interval_min = u32!0x7FFFFFFF
+save_system_report = u8!0x0
+
+[olsc]
+; 禁用云存档服务
+default_auto_upload_global_setting = u8!0x0
+default_auto_download_global_setting = u8!0x0
+
+[ns.rights]
+; 跳过账户验证（重要权限检查）
+skip_account_validation_on_rights_check = u8!0x1
+
+; =============================================
+; ⚡ 性能优化配置
+; =============================================
+
+[account.daemon]
+; 延长账户服务间隔
+background_awaking_periodicity = u32!0x7FFFFFFF
+
+[notification.presenter]
+; 禁用通知重试
+connection_retry_count = u32!0x0
+
+[systemupdate]
+; 禁用系统更新重试
+bgnup_retry_seconds = u32!0x7FFFFFFF
+
+[pctl]
+; 延长家长控制检查间隔
+intermittent_task_interval_seconds = u32!0x7FFFFFFF
 ENDOFFILE
 if [ $? -ne 0 ]; then
     echo "Writing system_settings.ini in ./atmosphere/config\033[31m failed\033[0m."
