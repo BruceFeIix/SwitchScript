@@ -121,7 +121,7 @@ curl -sL "$download_url" -o DBI.nro && {
     mv DBI.nro ./switch/DBI
 } || echo "DBI download\033[31m failed\033[0m."
 
-latest_release_info=$(curl -sL https://api.github.com/repos/dragonflylee/Awoo-Installer/releases/latest)
+latest_release_info=$(curl -sL https://api.github.com/repos/Huntereb/Awoo-Installer/releases/latest)
 download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*Awoo-Installer.zip' | sed 's/"//g')
 curl -sL "$download_url" -o Awoo-Installer.zip && {
     echo "Awoo Installer download\033[32m success\033[0m."
@@ -292,7 +292,7 @@ curl -sL "$download_url" -o ldn_mitm.zip&& {
     rm ldn_mitm.zip
 } || echo "ldn_mitm download\033[31m failed\033[0m."
 
-latest_release_info=$(curl -sL https://api.github.com/repos/zdm65477730/emuiibo/releases/latest)
+latest_release_info=$(curl -sL https://api.github.com/repos/XorTroll/emuiibo/releases/latest)
 download_url=$(echo "$latest_release_info" | grep -oP '"browser_download_url": "\Khttps://[^"]*emuiibo.zip' | sed 's/"//g')
 curl -sL "$download_url" -o emuiibo.zip&& {
     echo "emuiibo download\033[32m success\033[0m."
